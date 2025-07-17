@@ -14,14 +14,13 @@ class Discriminator(nn.Module):
 
         #8 Blocks
         self.model = nn.Sequential(
-            block(3, 32, 2), # h/2
-            block(32, 64, 2), # h/4
-            block(64, 128, 2),# 128 * 64 * 9, H = 8
+            block(1, 32, 2), # h/2 = 32
+            block(32, 64, 2), # 32/2 = 16
 
-            # Flatten for fully connected layers, 128 * 8 * 8
+            # Flatten for fully connected layers
             nn.Flatten(),
             # Fully connected
-            nn.Linear(128 * 8 * 8, 128), #1 million parameters
+            nn.Linear(64 * 16 * 16, 128), #
             nn.LeakyReLU(0.2, inplace=True),
             nn.Linear(128, 1), # We only want 1,0 so fully connected to 1 feature
 

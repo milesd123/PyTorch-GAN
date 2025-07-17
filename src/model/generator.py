@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
-from blocks.upsample_block import UpsampleBlock
-from blocks.residual_block import ResidualBlock
+from src.model.blocks.upsample_block import UpsampleBlock
+from src.model.blocks.residual_block import ResidualBlock
+
 
 class Generator(nn.Module):
     def __init__(self, n_res_blocks=16):
@@ -11,8 +12,9 @@ class Generator(nn.Module):
         self.k = 64
 
         self.entry = nn.Sequential(
-            nn.Conv2d(3, self.k, kernel_size=9, padding=4),
-            nn.PReLU()
+            #4 for RGBA
+            nn.Conv2d(1, self.k, kernel_size=9, padding=4),
+            nn.PReLU(64)
         )
 
         self.res_blocks = nn.Sequential(*[ResidualBlock(self.k) for _ in range(n_res_blocks)])
@@ -27,8 +29,8 @@ class Generator(nn.Module):
             UpsampleBlock(self.k, 2),
         )
 
-        self.final = nn.Conv2d(self.k, 3, kernel_size=9, padding=4)
-        # Around 1M params
+        self.final = nn.Conv2d(self.k, 1, kernel_size=9, padding=4)
+        # Around 1M params: 963_072 trainable parameters
 
     def forward(self, x):
         # Initial convolution + PReLU
@@ -39,4 +41,4 @@ class Generator(nn.Module):
         x3 = self.mid(x2)
         # Upsample block
         x4 = self.upsample(x1 + x3)
-        return torch.tanh(self.final(x4)) # final convolution back to 3 output channels
+        return torch.sigmoid(self.final(x4)) # final convolution back to 1 output channel
